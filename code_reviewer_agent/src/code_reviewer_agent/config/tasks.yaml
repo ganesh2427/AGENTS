@@ -1,0 +1,59 @@
+error_analysis_task:
+  description: >
+    Analyze code files in: {path}
+    
+    Focus on finding:
+    1. Syntax errors and compilation issues
+    2. Logical bugs and runtime errors
+    3. Code quality issues
+    4. Simple improvement suggestions
+    
+    Keep analysis concise and practical.
+  expected_output: >
+    Error and suggestion report with:
+    - List of errors found with line numbers
+    - Bug patterns identified
+    - Simple improvement suggestions
+    - Priority level for each issue
+  agent: code_reviewer
+  output_file: 'output/error_suggestions_report.md'
+
+security_analysis_task:
+  description: >
+    Scan code files for security issues:
+    
+    Look for:
+    1. Hardcoded passwords/secrets
+    2. SQL injection risks
+    3. Input validation issues
+    4. Common security vulnerabilities
+    
+    Provide quick remediation steps.
+  expected_output: >
+    Security report with:
+    - Security vulnerabilities found
+    - Risk level for each issue
+    - Quick fix recommendations
+    - Security best practices
+  agent: security_specialist
+  output_file: 'output/security_report.md'
+
+performance_analysis_task:
+  description: >
+    Check code for performance issues:
+    
+    Identify:
+    1. Slow algorithms and loops
+    2. Memory usage problems
+    3. Inefficient data structures
+    4. Performance bottlenecks
+    
+    Suggest practical optimizations.
+  expected_output: >
+    Performance report with:
+    - Performance issues identified
+    - Impact assessment
+    - Optimization suggestions
+    - Implementation tips
+  agent: performance_analyst
+  output_file: 'output/performance_report.md'
