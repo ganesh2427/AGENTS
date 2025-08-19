@@ -18,7 +18,7 @@ def run():
     Run the crew.
     """
     inputs = {
-        'topic': 'Plant Leaf Disease Detection',
+        'topic': 'AI',
         'current_year': str(datetime.now().year)
     }
     
