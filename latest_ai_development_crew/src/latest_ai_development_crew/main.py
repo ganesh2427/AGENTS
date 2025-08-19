@@ -18,7 +18,7 @@ def run():
     Run the crew.
     """
     inputs = {
-        'topic': 'Sambhaji Maharaj',
+        'topic': 'Plant Leaf Disease Detection',
         'current_year': str(datetime.now().year)
     }
     
