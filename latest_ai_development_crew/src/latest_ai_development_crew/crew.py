@@ -57,12 +57,26 @@ class LatestAiDevelopmentCrew():
       config=self.tasks_config['research_task'], # type: ignore[index]
     )
 
+  # @task
+  # def reporting_task(self) -> Task:
+  #   return Task(
+  #     config=self.tasks_config['reporting_task'], # type: ignore[index]
+  #     output_file='output/report.md' # This is the file that will be contain the final report.
+  #   )
+
   @task
   def reporting_task(self) -> Task:
-    return Task(
-      config=self.tasks_config['reporting_task'], # type: ignore[index]
-      output_file='output/report.md' # This is the file that will be contain the final report.
-    )
+      import datetime
+      
+      timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+      
+      return Task(
+          config=self.tasks_config['reporting_task'], # type: ignore[index]
+          output_file=f'output/{{topic}}_{timestamp}.md'  # Use double braces for topic variable
+      )
+
+
+
 
   @crew
   def crew(self) -> Crew:
