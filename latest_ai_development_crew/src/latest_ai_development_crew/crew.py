@@ -57,13 +57,6 @@ class LatestAiDevelopmentCrew():
       config=self.tasks_config['research_task'], # type: ignore[index]
     )
 
-  # @task
-  # def reporting_task(self) -> Task:
-  #   return Task(
-  #     config=self.tasks_config['reporting_task'], # type: ignore[index]
-  #     output_file='output/report.md' # This is the file that will be contain the final report.
-  #   )
-
   @task
   def reporting_task(self) -> Task:
       import datetime
