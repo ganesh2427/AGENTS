@@ -28,6 +28,24 @@ def run():
         raise Exception(f"An error occurred while running the crew: {e}")
 
 
+
+def run_agent(topic):
+    """
+    Run the crew with a specific topic from user input.
+    """
+    inputs = {
+        'topic': topic,
+        'current_year': str(datetime.now().year)
+    }
+    
+    try:
+        result = LatestAiDevelopmentCrew().crew().kickoff(inputs=inputs)
+        return result.raw  # Return the actual result
+    except Exception as e:
+        return {"error": str(e), "message": "An error occurred while running the crew"}
+    
+
+
 def train():
     """
     Train the crew for a given number of iterations.
