@@ -5,6 +5,9 @@ from crewai.project import CrewBase, agent, crew, task,before_kickoff, after_kic
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 
+
+
+
 @CrewBase
 class LatestAiDevelopmentCrew():
   """LatestAiDevelopment crew"""
