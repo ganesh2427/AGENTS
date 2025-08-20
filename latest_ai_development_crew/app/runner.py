@@ -10,20 +10,11 @@
 # def run_agent_wrapper(user_input):
 #     return run_agent(user_input)
 
-import sys
-import types
+# app/runner.py
 
-# ---- Patch chromadb before crewai tries to import it ----
-try:
-    import chromadb
-except Exception:
-    # Create a fake chromadb module so crewai won't crash
-    fake_chromadb = types.ModuleType("chromadb")
-    fake_chromadb.Client = lambda *args, **kwargs: None
-    fake_chromadb.__version__ = "0.0.0"
-    sys.modules["chromadb"] = fake_chromadb
+# Patch chromadb before crewai ever loads
+import patch_chromadb  
 
-# Now safely import your main runner
 from latest_ai_development_crew.main import run_agent
 
 
@@ -38,4 +29,5 @@ def run_agent_wrapper(user_input: str):
 
     except Exception as e:
         return f"🤖 (Safe Mode) Unable to use Knowledge DB. Response for: {user_input}"
+
 
