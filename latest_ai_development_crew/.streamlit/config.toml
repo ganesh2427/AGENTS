@@ -1,1 +1,8 @@
 ignorePyproject = true
+
+[theme]
+base="light"
+backgroundColor="#FFFFFF"
+secondaryBackgroundColor="#F5F5F5"
+textColor="#000000"
+primaryColor="#4CAF50"
