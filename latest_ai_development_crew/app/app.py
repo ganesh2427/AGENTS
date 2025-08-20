@@ -1,247 +1,179 @@
 import streamlit as st
 import os
-import sys
+import tempfile
 import traceback
-from datetime import datetime
+from runner import run_agent_wrapper
 
-# Disable all ChromaDB-related features
+
 os.environ["CREWAI_DISABLE_TELEMETRY"] = "true"
-os.environ["CREWAI_STORAGE_DIR"] = "/tmp"
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["CREWAI_STORAGE_DIR"] = "/tmp/crewai_storage"
 
-st.title("🚀 AI Development Crew")
 
-@st.cache_data
-def create_simple_crew():
-    """Create a simple crew without ChromaDB dependencies"""
-    try:
-        # Add your source path
-        sys.path.append('/mount/src/agents/latest_ai_development_crew/src')
-        
-        # Import only what we need, avoiding ChromaDB
-        from crewai import Agent, Task, Crew
-        from crewai.tools import SerperDevTool
-        
-        # Create agents without knowledge/memory features
-        researcher = Agent(
-            role='AI Research Specialist',
-            goal='Research and analyze the latest developments in AI technology',
-            backstory='You are an expert AI researcher with deep knowledge of current trends and developments.',
-            verbose=True,
-            allow_delegation=False,
-            memory=False  # Disable memory to avoid ChromaDB
-        )
-        
-        writer = Agent(
-            role='Technical Writer',
-            goal='Create comprehensive and insightful analysis reports',
-            backstory='You are a skilled technical writer who can explain complex AI concepts clearly.',
-            verbose=True,
-            allow_delegation=False,
-            memory=False  # Disable memory to avoid ChromaDB
-        )
-        
-        def run_simple_crew(topic):
-            # Create task
-            research_task = Task(
-                description=f'Research the latest developments and trends in {topic}. Focus on current innovations, key players, and future implications.',
-                agent=researcher,
-                expected_output='A detailed research report with current trends and developments'
-            )
-            
-            writing_task = Task(
-                description=f'Based on the research, write a comprehensive analysis of {topic} including key insights, trends, and future outlook.',
-                agent=writer,
-                expected_output='A well-structured analysis report with actionable insights'
-            )
-            
-            # Create crew without memory
-            crew = Crew(
-                agents=[researcher, writer],
-                tasks=[research_task, writing_task],
-                verbose=True,
-                memory=False  # Explicitly disable memory
-            )
-            
-            # Run the crew
-            result = crew.kickoff()
-            return result.raw if hasattr(result, 'raw') else str(result)
-        
-        return run_simple_crew, None
-        
-    except Exception as e:
-        return None, str(e)
 
-# Try to load the crew
-run_crew_func, load_error = create_simple_crew()
+# Initialize storage directory for ChromaDB before anything else
+if "CREWAI_STORAGE_DIR" not in os.environ:
+    temp_dir = tempfile.mkdtemp()
+    os.environ["CREWAI_STORAGE_DIR"] = temp_dir
 
-if load_error:
-    st.warning("⚠️ CrewAI unavailable - using enhanced AI analysis mode")
-    with st.expander("🔍 Technical Details"):
-        st.code(load_error)
-    use_crew = False
-else:
-    st.success("✅ CrewAI loaded successfully (memory disabled)")
-    use_crew = True
+st.set_page_config(
+    page_title="AI Development Crew", 
+    page_icon="🤖", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# Input section
-user_input = st.text_input("Ask something about AI:", placeholder="e.g., Latest trends in Agentic AI")
+# Sidebar Settings
+st.sidebar.title("⚙️ Settings")
+st.sidebar.markdown("---")
 
-if st.button("🚀 Run Analysis"):
+# Model Selection
+model_choice = st.sidebar.selectbox(
+    "🧠 Choose AI Model", 
+    ["gpt-4", "gpt-3.5-turbo", "gpt-4-turbo"],
+    index=0,
+    help="Select the AI model for your crew"
+)
+
+# Temperature Control
+temperature = st.sidebar.slider(
+    "🌡️ Temperature", 
+    min_value=0.0, 
+    max_value=1.0, 
+    value=0.7, 
+    step=0.1,
+    help="Controls creativity: Lower = more focused, Higher = more creative"
+)
+
+# Additional Settings
+st.sidebar.markdown("### 🔧 Advanced Options")
+max_tokens = st.sidebar.number_input(
+    "Max Tokens", 
+    min_value=100, 
+    max_value=4000, 
+    value=2000,
+    help="Maximum length of the response"
+)
+
+enable_memory = st.sidebar.checkbox(
+    "Enable Memory", 
+    value=True,
+    help="Allow the crew to remember previous conversations"
+)
+
+# Sidebar Info
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 📊 Session Info")
+st.sidebar.info(f"Model: {model_choice}\nTemperature: {temperature}\nMax Tokens: {max_tokens}")
+
+# Main App
+st.title("🚀 Latest AI Development Crew")
+st.markdown("Ask questions about AI development, trends, and technologies!")
+
+# Input Section
+col1, col2 = st.columns([3, 1])
+with col1:
+    user_input = st.text_input(
+        "💬 Ask something about AI:", 
+        placeholder="e.g., Latest trends in Agentic AI, Machine Learning advancements...",
+        help="Enter your question about AI development"
+    )
+with col2:
+    st.markdown("<br>", unsafe_allow_html=True)  # Add spacing
+    run_button = st.button("🚀 Run Agent", type="primary", use_container_width=True)
+
+# Example Questions
+st.markdown("### 💡 Example Questions")
+example_cols = st.columns(3)
+with example_cols[0]:
+    if st.button("🤖 Agentic AI Trends", use_container_width=True):
+        user_input = "Latest trends in Agentic AI"
+with example_cols[1]:
+    if st.button("🧠 LLM Developments", use_container_width=True):
+        user_input = "Recent developments in Large Language Models"
+with example_cols[2]:
+    if st.button("🔬 AI Research", use_container_width=True):
+        user_input = "Cutting-edge AI research breakthroughs"
+
+# Process Input
+if run_button or user_input:
     if user_input.strip():
-        with st.spinner("🤖 Analyzing AI developments..."):
+        # Show settings being used
+        with st.expander("🔍 Current Settings", expanded=False):
+            st.json({
+                "model": model_choice,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "memory_enabled": enable_memory
+            })
+        
+        # Progress and execution
+        with st.spinner(f"🤖 Running AI crew with {model_choice}..."):
             try:
-                if use_crew and run_crew_func:
-                    # Use actual CrewAI
-                    result = run_crew_func(user_input)
-                    st.success("✅ CrewAI Analysis Complete!")
+                # Pass settings to your crew (you'll need to modify runner.py to accept these)
+                result = run_agent_wrapper(user_input)
+                
+                if isinstance(result, dict) and "error" in result:
+                    st.warning(f"⚠️ {result['message']}")
+                    st.info("App running in fallback mode - knowledge features disabled but core functionality works.")
+                    
+                    # Show error details in expander
+                    with st.expander("🔍 Error Details"):
+                        st.code(result['error'])
                 else:
-                    # Enhanced mock analysis
-                    result = f"""# AI Development Analysis: {user_input}
-
-## Executive Summary
-Comprehensive analysis of "{user_input}" based on current AI research and industry developments as of {datetime.now().strftime('%B %Y')}.
-
-## Key Developments
-
-### 🚀 Current Innovations
-**Agentic AI Systems**
-- Autonomous reasoning and decision-making capabilities
-- Multi-step problem solving with minimal human intervention
-- Integration with external tools and APIs for enhanced functionality
-
-**Multi-Modal AI Integration**
-- Seamless processing of text, images, audio, and video
-- Cross-modal understanding and generation capabilities
-- Applications in robotics, content creation, and human-computer interaction
-
-**Edge AI Deployment**
-- Optimized models for mobile and IoT devices
-- Real-time processing with reduced latency
-- Privacy-preserving local computation
-
-### 🔬 Technical Breakthroughs
-**Large Language Models (LLMs)**
-- Improved reasoning and mathematical capabilities
-- Better code generation and debugging
-- Enhanced domain-specific knowledge and expertise
-
-**Retrieval Augmented Generation (RAG)**
-- Real-time information retrieval and integration
-- Reduced hallucinations through grounded responses
-- Dynamic knowledge base updates
-
-**Multi-Agent Frameworks**
-- Collaborative AI systems working on complex tasks
-- Specialized agents with distinct roles and capabilities
-- Emergent behaviors from agent interactions
-
-### 🏭 Industry Applications
-**Healthcare & Life Sciences**
-- AI-powered drug discovery and development
-- Personalized treatment recommendations
-- Medical imaging and diagnostic assistance
-
-**Financial Services**
-- Automated trading and risk assessment
-- Fraud detection and prevention
-- Personalized financial advisory services
-
-**Education & Training**
-- Adaptive learning platforms
-- Intelligent tutoring systems
-- Automated content generation and assessment
-
-## Future Outlook
-
-### Near-term Developments (6-12 months)
-- Enhanced reasoning capabilities in LLMs
-- Better integration of AI agents with existing software systems
-- Improved efficiency and reduced computational requirements
-
-### Medium-term Trends (1-3 years)
-- Widespread adoption of multi-agent systems
-- Advanced AI-human collaboration interfaces
-- Specialized AI models for specific industries and use cases
-
-### Long-term Vision (3-5 years)
-- Autonomous AI systems capable of complex project management
-- Seamless integration of AI across all digital platforms
-- New paradigms in human-AI interaction and collaboration
-
-## Strategic Recommendations
-
-### For Organizations
-1. **Invest in AI Literacy**: Train teams on AI capabilities and limitations
-2. **Start Small**: Implement AI solutions in specific, well-defined use cases
-3. **Focus on Data Quality**: Ensure high-quality data for AI training and deployment
-4. **Consider Ethical Implications**: Develop guidelines for responsible AI use
-
-### For Developers
-1. **Learn Multi-Agent Frameworks**: Understand how to build and deploy agent systems
-2. **Master RAG Techniques**: Implement retrieval-augmented generation for better accuracy
-3. **Optimize for Edge Deployment**: Develop skills in model compression and optimization
-4. **Stay Updated**: Follow latest research and industry developments
-
-## Conclusion
-The AI landscape is rapidly evolving with significant advancements in autonomous systems, multi-modal capabilities, and practical applications across industries. Organizations and individuals who adapt to these changes and implement AI solutions thoughtfully will gain significant competitive advantages.
-
-The key to success lies in understanding both the capabilities and limitations of current AI technology while preparing for the transformative changes ahead.
-
----
-*Analysis generated by AI Development Crew | {datetime.now().strftime('%B %d, %Y')}*"""
-
-                # Display results
-                tab1, tab2, tab3 = st.tabs(["📄 Analysis", "📊 Summary", "📥 Export"])
-                
-                with tab1:
-                    st.markdown(result)
-                
-                with tab2:
-                    st.markdown("### 🎯 Key Takeaways")
-                    st.info("• AI systems are becoming more autonomous and capable")
-                    st.info("• Multi-modal integration is a major trend")
-                    st.info("• Edge deployment is growing for privacy and performance")
-                    st.info("• Industry applications are expanding rapidly")
-                
-                with tab3:
-                    st.download_button(
-                        label="📥 Download Full Analysis",
-                        data=result,
-                        file_name=f"ai_analysis_{user_input[:20].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.md",
-                        mime="text/markdown"
-                    )
-                
+                    st.success("✅ Agent completed successfully!")
+                    
+                    # Enhanced Output Display with Tabs
+                    tab1, tab2, tab3 = st.tabs(["📄 Formatted Result", "🔤 Raw Output", "📊 Analysis"])
+                    
+                    with tab1:
+                        st.markdown("### 🎯 AI Development Insights")
+                        if isinstance(result, str):
+                            # Format the result nicely
+                            st.markdown(result)
+                        else:
+                            st.write(result)
+                    
+                    with tab2:
+                        st.markdown("### 📝 Raw Output")
+                        st.code(str(result), language="text")
+                    
+                    with tab3:
+                        st.markdown("### 📊 Response Analysis")
+                        if isinstance(result, str):
+                            word_count = len(result.split())
+                            char_count = len(result)
+                            
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("Word Count", word_count)
+                            with col2:
+                                st.metric("Character Count", char_count)
+                            with col3:
+                                st.metric("Model Used", model_choice)
+                        
+                        # Add download button
+                        st.download_button(
+                            label="📥 Download Result",
+                            data=str(result),
+                            file_name=f"ai_crew_result_{user_input[:20]}.txt",
+                            mime="text/plain"
+                        )
+                        
             except Exception as e:
-                st.error("❌ Analysis error occurred")
-                with st.expander("🔍 Error Details"):
+                st.error("❌ An error occurred!")
+                with st.expander("🔍 Full Error Details"):
                     st.code(traceback.format_exc())
     else:
-        st.warning("⚠️ Please enter your AI development question.")
+        st.warning("⚠️ Please enter a question about AI.")
 
-# Sidebar
-with st.sidebar:
-    st.markdown("### 🔧 System Status")
-    if use_crew:
-        st.success("CrewAI Active")
-        st.caption("Memory features disabled")
-    else:
-        st.info("Enhanced Analysis Mode")
-        st.caption("High-quality AI insights")
-    
-    st.markdown("### 💡 Popular Topics")
-    examples = [
-        "Agentic AI systems",
-        "Multi-modal AI models",
-        "LLM fine-tuning techniques",
-        "AI safety and alignment",
-        "Edge AI deployment",
-        "RAG system architectures"
-    ]
-    
-    for example in examples:
-        if st.button(example, key=example, use_container_width=True):
-            st.session_state.example_clicked = example
-
+# Footer
 st.markdown("---")
-st.markdown("🤖 **AI Development Crew** | Advanced AI Analysis Platform")
+st.markdown(
+    """
+    <div style='text-align: center; color: #666;'>
+        🤖 Powered by CrewAI | Built with Streamlit
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
+
