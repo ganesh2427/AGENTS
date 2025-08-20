@@ -1,7 +1,1 @@
-streamlit
-crewai
-litellm
-google-generativeai
-pyyaml
-requests
-pydantic
+ # then re-add deps manually or export
