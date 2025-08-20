@@ -1,228 +1,147 @@
-# import streamlit as st
-# import os
-# import tempfile
-# import traceback
-# from runner import run_agent_wrapper
-
-
-# os.environ["CREWAI_DISABLE_TELEMETRY"] = "true"
-# os.environ["CREWAI_STORAGE_DIR"] = "/tmp/crewai_storage"
-
-
-
-# # Initialize storage directory for ChromaDB before anything else
-# if "CREWAI_STORAGE_DIR" not in os.environ:
-#     temp_dir = tempfile.mkdtemp()
-#     os.environ["CREWAI_STORAGE_DIR"] = temp_dir
-
-# st.set_page_config(
-#     page_title="AI Development Crew", 
-#     page_icon="🤖", 
-#     layout="wide",
-#     initial_sidebar_state="expanded"
-# )
-
-# # Sidebar Settings
-# st.sidebar.title("⚙️ Settings")
-# st.sidebar.markdown("---")
-
-# # Model Selection
-# model_choice = st.sidebar.selectbox(
-#     "🧠 Choose AI Model", 
-#     ["gpt-4", "gpt-3.5-turbo", "gpt-4-turbo"],
-#     index=0,
-#     help="Select the AI model for your crew"
-# )
-
-# # Temperature Control
-# temperature = st.sidebar.slider(
-#     "🌡️ Temperature", 
-#     min_value=0.0, 
-#     max_value=1.0, 
-#     value=0.7, 
-#     step=0.1,
-#     help="Controls creativity: Lower = more focused, Higher = more creative"
-# )
-
-# # Additional Settings
-# st.sidebar.markdown("### 🔧 Advanced Options")
-# max_tokens = st.sidebar.number_input(
-#     "Max Tokens", 
-#     min_value=100, 
-#     max_value=4000, 
-#     value=2000,
-#     help="Maximum length of the response"
-# )
-
-# enable_memory = st.sidebar.checkbox(
-#     "Enable Memory", 
-#     value=True,
-#     help="Allow the crew to remember previous conversations"
-# )
-
-# # Sidebar Info
-# st.sidebar.markdown("---")
-# st.sidebar.markdown("### 📊 Session Info")
-# st.sidebar.info(f"Model: {model_choice}\nTemperature: {temperature}\nMax Tokens: {max_tokens}")
-
-# # Main App
-# st.title("🚀 Latest AI Development Crew")
-# st.markdown("Ask questions about AI development, trends, and technologies!")
-
-# # Input Section
-# col1, col2 = st.columns([3, 1])
-# with col1:
-#     user_input = st.text_input(
-#         "💬 Ask something about AI:", 
-#         placeholder="e.g., Latest trends in Agentic AI, Machine Learning advancements...",
-#         help="Enter your question about AI development"
-#     )
-# with col2:
-#     st.markdown("<br>", unsafe_allow_html=True)  # Add spacing
-#     run_button = st.button("🚀 Run Agent", type="primary", use_container_width=True)
-
-# # Example Questions
-# st.markdown("### 💡 Example Questions")
-# example_cols = st.columns(3)
-# with example_cols[0]:
-#     if st.button("🤖 Agentic AI Trends", use_container_width=True):
-#         user_input = "Latest trends in Agentic AI"
-# with example_cols[1]:
-#     if st.button("🧠 LLM Developments", use_container_width=True):
-#         user_input = "Recent developments in Large Language Models"
-# with example_cols[2]:
-#     if st.button("🔬 AI Research", use_container_width=True):
-#         user_input = "Cutting-edge AI research breakthroughs"
-
-# # Process Input
-# if run_button or user_input:
-#     if user_input.strip():
-#         # Show settings being used
-#         with st.expander("🔍 Current Settings", expanded=False):
-#             st.json({
-#                 "model": model_choice,
-#                 "temperature": temperature,
-#                 "max_tokens": max_tokens,
-#                 "memory_enabled": enable_memory
-#             })
-        
-#         # Progress and execution
-#         with st.spinner(f"🤖 Running AI crew with {model_choice}..."):
-#             try:
-#                 # Pass settings to your crew (you'll need to modify runner.py to accept these)
-#                 result = run_agent_wrapper(user_input)
-                
-#                 if isinstance(result, dict) and "error" in result:
-#                     st.warning(f"⚠️ {result['message']}")
-#                     st.info("App running in fallback mode - knowledge features disabled but core functionality works.")
-                    
-#                     # Show error details in expander
-#                     with st.expander("🔍 Error Details"):
-#                         st.code(result['error'])
-#                 else:
-#                     st.success("✅ Agent completed successfully!")
-                    
-#                     # Enhanced Output Display with Tabs
-#                     tab1, tab2, tab3 = st.tabs(["📄 Formatted Result", "🔤 Raw Output", "📊 Analysis"])
-                    
-#                     with tab1:
-#                         st.markdown("### 🎯 AI Development Insights")
-#                         if isinstance(result, str):
-#                             # Format the result nicely
-#                             st.markdown(result)
-#                         else:
-#                             st.write(result)
-                    
-#                     with tab2:
-#                         st.markdown("### 📝 Raw Output")
-#                         st.code(str(result), language="text")
-                    
-#                     with tab3:
-#                         st.markdown("### 📊 Response Analysis")
-#                         if isinstance(result, str):
-#                             word_count = len(result.split())
-#                             char_count = len(result)
-                            
-#                             col1, col2, col3 = st.columns(3)
-#                             with col1:
-#                                 st.metric("Word Count", word_count)
-#                             with col2:
-#                                 st.metric("Character Count", char_count)
-#                             with col3:
-#                                 st.metric("Model Used", model_choice)
-                        
-#                         # Add download button
-#                         st.download_button(
-#                             label="📥 Download Result",
-#                             data=str(result),
-#                             file_name=f"ai_crew_result_{user_input[:20]}.txt",
-#                             mime="text/plain"
-#                         )
-                        
-#             except Exception as e:
-#                 st.error("❌ An error occurred!")
-#                 with st.expander("🔍 Full Error Details"):
-#                     st.code(traceback.format_exc())
-#     else:
-#         st.warning("⚠️ Please enter a question about AI.")
-
-# # Footer
-# st.markdown("---")
-# st.markdown(
-#     """
-#     <div style='text-align: center; color: #666;'>
-#         🤖 Powered by CrewAI | Built with Streamlit
-#     </div>
-#     """, 
-#     unsafe_allow_html=True
-# )
-
-
-
 import streamlit as st
 import os
 import sys
+import traceback
 
 # Disable ChromaDB and knowledge features
 os.environ["CREWAI_DISABLE_TELEMETRY"] = "true"
 os.environ["CREWAI_STORAGE_DIR"] = "/tmp"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 st.title("🚀 AI Development Crew")
 
-# Simple text-based crew without ChromaDB dependencies
-user_input = st.text_input("Ask something about AI:", "")
+@st.cache_data
+def load_crew_module():
+    """Load the CrewAI module with error handling"""
+    try:
+        # Add your source path
+        sys.path.append('/mount/src/agents/latest_ai_development_crew/src')
+        from latest_ai_development_crew.main import run_agent
+        return run_agent, None
+    except Exception as e:
+        return None, str(e)
 
-if st.button("Run Agent"):
+# Load the crew module
+run_agent_func, load_error = load_crew_module()
+
+if load_error:
+    st.error(f"⚠️ CrewAI module loading failed: {load_error}")
+    st.info("Running in mock mode. Add your API keys to Streamlit secrets for full functionality.")
+    use_mock = True
+else:
+    st.success("✅ CrewAI module loaded successfully!")
+    use_mock = False
+
+# Input section
+user_input = st.text_input("Ask something about AI:", placeholder="e.g., Latest trends in Agentic AI")
+
+if st.button("🚀 Run Agent"):
     if user_input.strip():
-        with st.spinner("Processing..."):
+        with st.spinner("🤖 AI Development Crew is working..."):
             try:
-                # Simple mock response for now - replace with your logic
-                result = f"""
-# AI Development Insights: {user_input}
+                if not use_mock and run_agent_func:
+                    # Use your actual CrewAI agent
+                    result = run_agent_func(user_input)
+                    
+                    # Handle different result types
+                    if isinstance(result, dict) and "error" in result:
+                        st.warning(f"⚠️ {result.get('message', 'Agent encountered an issue')}")
+                        st.info("Falling back to mock response...")
+                        use_mock = True
+                    else:
+                        st.success("✅ CrewAI Analysis Complete!")
+                        
+                        # Display results in tabs
+                        tab1, tab2 = st.tabs(["📄 Formatted Result", "🔤 Raw Output"])
+                        
+                        with tab1:
+                            if isinstance(result, str):
+                                st.markdown(result)
+                            else:
+                                st.write(result)
+                        
+                        with tab2:
+                            st.code(str(result), language="text")
+                        
+                        # Add download option
+                        st.download_button(
+                            label="📥 Download Result",
+                            data=str(result),
+                            file_name=f"ai_analysis_{user_input[:20].replace(' ', '_')}.txt",
+                            mime="text/plain"
+                        )
+                
+                # Fallback to mock if needed
+                if use_mock:
+                    result = f"""
+# AI Development Analysis: {user_input}
 
-Based on your query about "{user_input}", here are key insights:
+## Executive Summary
+Based on your query about "{user_input}", here's a comprehensive analysis of current AI development trends and insights.
 
-## Current Trends
-- Agentic AI systems are becoming more autonomous
-- Multi-modal AI is advancing rapidly
-- Edge AI deployment is growing
+## Key Findings
 
-## Key Technologies
-- Large Language Models (LLMs)
-- Retrieval Augmented Generation (RAG)
-- Multi-agent systems
+### Current Market Trends
+- **Agentic AI Systems**: Autonomous agents are becoming more sophisticated with improved reasoning capabilities
+- **Multi-Modal Integration**: AI systems now seamlessly process text, images, audio, and video
+- **Edge Computing**: AI deployment is shifting towards edge devices for better performance and privacy
+
+### Technical Developments
+- **Large Language Models (LLMs)**: Continued improvements in reasoning, coding, and specialized domain knowledge
+- **Retrieval Augmented Generation (RAG)**: Enhanced accuracy through real-time information retrieval
+- **Multi-Agent Frameworks**: Collaborative AI systems working together on complex tasks
+
+### Industry Applications
+- **Healthcare**: AI-powered diagnostics and personalized treatment plans
+- **Finance**: Automated trading systems and fraud detection
+- **Education**: Personalized learning experiences and intelligent tutoring systems
 
 ## Future Outlook
-The field is evolving towards more specialized and efficient AI systems.
-                """
-                
-                st.success("✅ Analysis Complete!")
-                st.markdown(result)
+The AI landscape is rapidly evolving towards more specialized, efficient, and autonomous systems. Key areas to watch include:
+
+1. **Improved Reasoning**: Better logical thinking and problem-solving capabilities
+2. **Reduced Hallucinations**: More reliable and factual AI responses
+3. **Energy Efficiency**: Smaller, more efficient models for widespread deployment
+
+## Recommendations
+- Stay updated with latest AI research and developments
+- Consider implementing AI solutions in your specific domain
+- Focus on ethical AI practices and responsible deployment
+
+---
+*Analysis generated by AI Development Crew*
+                    """
+                    
+                    st.success("✅ Analysis Complete!")
+                    st.markdown(result)
+                    st.info("🔧 This is a mock response. Configure API keys for full CrewAI functionality.")
                 
             except Exception as e:
-                st.error(f"Error: {str(e)}")
+                st.error("❌ An error occurred during processing")
+                with st.expander("🔍 Error Details"):
+                    st.code(traceback.format_exc())
     else:
-        st.warning("Please enter a question.")
+        st.warning("⚠️ Please enter a question about AI development.")
+
+# Sidebar with information
+with st.sidebar:
+    st.markdown("### 🔧 Configuration")
+    if load_error:
+        st.error("CrewAI module not loaded")
+    else:
+        st.success("CrewAI ready")
+    
+    st.markdown("### 💡 Example Questions")
+    examples = [
+        "Latest trends in Agentic AI",
+        "Multi-agent system architectures", 
+        "LLM fine-tuning techniques",
+        "AI ethics and safety measures"
+    ]
+    
+    for example in examples:
+        if st.button(example, key=example):
+            st.session_state.user_input = example
 
 st.markdown("---")
-st.info("🔧 This is a simplified version running without ChromaDB dependencies.")
+st.markdown("🤖 **Powered by CrewAI** | Built with Streamlit")
