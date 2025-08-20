@@ -1,18 +1,18 @@
 import streamlit as st
 from runner import run_agent_wrapper
 
-st.set_page_config(page_title="CrewAI Agent", page_icon="🤖")
+st.set_page_config(page_title="AI Development Crew", page_icon="🤖", layout="wide")
 
-st.title("🤖 CrewAI Agent")
-st.write("Ask me anything about the latest AI developments!")
+st.title("🚀 Latest AI Development Crew")
 
-user_input = st.text_area("Your question:", "")
+user_input = st.text_input("Ask something about AI:", "")
 
 if st.button("Run Agent"):
     if user_input.strip():
-        with st.spinner("Running agent..."):
-            result = run_agent_wrapper(user_input)
-        st.success("✅ Done!")
-        st.write(result)
-    else:
-        st.warning("Please enter a question before running the agent.")
+        result = run_agent_wrapper(user_input)
+
+        if isinstance(result, dict) and "error" in result:
+            st.error(f"⚠️ {result['message']}\n\nDetails: {result['error']}")
+        else:
+            st.success("✅ Agent Result")
+            st.write(result)
