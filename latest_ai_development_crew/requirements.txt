@@ -1,0 +1,7 @@
+streamlit
+crewai
+litellm
+google-generativeai
+pyyaml
+requests
+pydantic
