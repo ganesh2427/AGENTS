@@ -1,1 +1,6 @@
- # then re-add deps manually or export
+streamlit
+crewai
+openai
+langchain
+pydantic
+python-dotenv
