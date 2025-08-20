@@ -4,6 +4,12 @@ import tempfile
 import traceback
 from runner import run_agent_wrapper
 
+
+os.environ["CREWAI_DISABLE_TELEMETRY"] = "true"
+os.environ["CREWAI_STORAGE_DIR"] = "/tmp/crewai_storage"
+
+
+
 # Initialize storage directory for ChromaDB before anything else
 if "CREWAI_STORAGE_DIR" not in os.environ:
     temp_dir = tempfile.mkdtemp()
